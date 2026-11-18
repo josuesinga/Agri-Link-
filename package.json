@@ -1,0 +1,16 @@
+{
+  "name": "agri-link-rdc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Plateforme de collecte et de coordination agricole AGRI-LINK RDC",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "engines": {"node": ">=20"},
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
+  }
+}
