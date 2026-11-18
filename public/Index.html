@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#176b45">
+<link rel="manifest" href="/manifest.json">
+<title>AGRI-LINK RDC</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <div class="brand">🌱 AGRI-LINK RDC</div>
+  <small>Plateforme agricole inclusive</small>
+</header>
+<main>
+  <div id="status" class="status">Vérification de la connexion…</div>
+
+  <section id="setup" class="panel hidden">
+    <h2>Première configuration</h2>
+    <p>Créer le compte administrateur initial.</p>
+    <form id="setupForm">
+      <label>Clé de configuration
+        <input name="setupKey" type="password" required>
+      </label>
+      <label>Nom d'utilisateur
+        <input name="username" required>
+      </label>
+      <label>Mot de passe (12 caractères minimum)
+        <input name="password" type="password" minlength="12" required>
+      </label>
+      <button>Créer l'administrateur</button>
+    </form>
+  </section>
+
+  <section id="login" class="panel hidden">
+    <h2>Connexion</h2>
+    <form id="loginForm">
+      <label>Nom d'utilisateur
+        <input name="username" required>
+      </label>
+      <label>Mot de passe
+        <input name="password" type="password" required>
+      </label>
+      <button>Se connecter</button>
+    </form>
+  </section>
+
+  <section id="app" class="hidden">
+    <div class="panel">
+      <div class="row">
+        <h2>Nouvelle observation</h2>
+        <button id="logout" class="secondary">Déconnexion</button>
+      </div>
+      <form id="observationForm">
+        <label>Type d'information
+          <select name="type">
+            <option value="prix">Prix du produit</option>
+            <option value="stock">Disponibilité du stock</option>
+            <option value="transport">Coût de transport</option>
+          </select>
+        </label>
+        <label>Produit agricole
+          <input name="product" placeholder="Ex. : manioc, maïs, tomate" required>
+        </label>
+        <div class="grid">
+          <label>Quantité
+            <input name="quantity" type="number" min="0" step="any">
+          </label>
+          <label>Unité
+            <input name="unit" placeholder="kg, sac, tonne…">
+          </label>
+        </div>
+        <div class="grid">
+          <label>Prix
+            <input name="price" type="number" min="0" step="any">
+          </label>
+          <label>Devise
+            <select name="currency">
+              <option>USD</option>
+              <option>CDF</option>
+            </select>
+          </label>
+        </div>
+        <label>Coût de transport
+          <input name="transport_cost" type="number" min="0" step="any">
+        </label>
+        <label>Lieu / zone de production
+          <input name="location" placeholder="Village, territoire, commune…">
+        </label>
+        <label>Marché / point de vente
+          <input name="market">
+        </label>
+        <label>Notes
+          <textarea name="notes" rows="3"></textarea>
+        </label>
+        <button>Enregistrer l'observation</button>
+      </form>
+      <p class="hint">Sans Internet, les observations restent sur ce téléphone et seront synchronisées au retour de la connexion.</p>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <h2>Observations centralisées</h2>
+        <button id="refresh" class="secondary">Actualiser</button>
+      </div>
+      <div id="observations">Connectez-vous pour consulter les données.</div>
+    </div>
+
+    <div id="adminPanel" class="panel hidden">
+      <h2>Créer un compte agent</h2>
+      <form id="userForm">
+        <label>Nom d'utilisateur
+          <input name="username" required>
+        </label>
+        <label>Mot de passe (12 caractères minimum)
+          <input name="password" type="password" minlength="12" required>
+        </label>
+        <button>Créer le compte agent</button>
+      </form>
+    </div>
+  </section>
+  <div id="message" role="status"></div>
+</main>
+<footer>AGRI-LINK RDC · Plateforme agricole</footer>
+<script src="/app.js"></script>
+</body>
+</html>
