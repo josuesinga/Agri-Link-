@@ -27,7 +27,29 @@
     <p>Connectons les producteurs, les consommateurs et tous les acteurs agricoles.</p>
     <input type="search" id="searchModule"
       placeholder="Rechercher un service agricole...">
-  </section>
+  <section class="auth-panel" id="authPanel">
+  <h2>Accéder à AGRI-LINK RDC</h2>
+  <p id="authStatus">Connectez-vous ou créez un compte.</p>
+
+  <form id="signUpForm">
+    <h3>Créer un compte</h3>
+    <input id="fullName" type="text" placeholder="Nom complet" required>
+    <input id="email" type="email" placeholder="Adresse e-mail" required>
+    <input id="phone" type="tel" placeholder="Téléphone (facultatif)">
+    <input id="password" type="password" placeholder="Mot de passe (6 caractères minimum)" minlength="6" required>
+    <button type="submit">Créer mon compte</button>
+  </form>
+
+  <form id="signInForm">
+    <h3>Se connecter</h3>
+    <input id="loginEmail" type="email" placeholder="Adresse e-mail" required>
+    <input id="loginPassword" type="password" placeholder="Mot de passe" required>
+    <button type="submit">Se connecter</button>
+  </form>
+
+  <button id="signOutBtn" type="button">Se déconnecter</button>
+  <div id="profileStatus"></div>
+</section>
 
   <section class="dashboard">
     <h2>Nos 13 modules</h2>
