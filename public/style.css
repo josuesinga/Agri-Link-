@@ -142,3 +142,52 @@ footer {
     grid-template-columns: repeat(4, 1fr);
   }
 }
+/* ESPACE DE CONNEXION */
+.auth-panel {
+  background: white;
+  max-width: 650px;
+  margin: 25px auto;
+  padding: 22px;
+  border-radius: 14px;
+  box-shadow: 0 3px 15px #00000012;
+}
+
+.auth-panel h2 {
+  color: #176b3a;
+  margin-bottom: 12px;
+}
+
+.auth-panel form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-panel h3 {
+  color: #176b3a;
+}
+
+.auth-panel input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #ccd8ce;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.auth-panel button {
+  padding: 13px;
+  background: #176b3a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#authStatus,
+#profileStatus {
+  margin-top: 12px;
+  line-height: 1.5;
+}
