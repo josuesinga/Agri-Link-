@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -25,116 +24,77 @@
   <section class="welcome">
     <h2>Bienvenue sur AGRI-LINK RDC</h2>
     <p>Connectons les producteurs, les consommateurs et tous les acteurs agricoles.</p>
-    <input type="search" id="searchModule"
-      placeholder="Rechercher un service agricole...">
+    <input type="search" id="searchModule" placeholder="Rechercher un service agricole...">
+  </section>
+
   <section class="auth-panel" id="authPanel">
-  <h2>Accéder à AGRI-LINK RDC</h2>
-  <p id="authStatus">Connectez-vous ou créez un compte.</p>
+    <h2>Accéder à AGRI-LINK RDC</h2>
+    <p id="authStatus">Connectez-vous ou créez un compte.</p>
 
-  <form id="signUpForm">
-    <h3>Créer un compte</h3>
-    <input id="fullName" type="text" placeholder="Nom complet" required>
-    <input id="email" type="email" placeholder="Adresse e-mail" required>
-    <input id="phone" type="tel" placeholder="Téléphone (facultatif)">
-    <input id="password" type="password" placeholder="Mot de passe (6 caractères minimum)" minlength="6" required>
-    <button type="submit">Créer mon compte</button>
-  </form>
+    <form id="signUpForm">
+      <h3>Créer un compte</h3>
+      <input id="fullName" type="text" placeholder="Nom complet" autocomplete="name" required>
+      <input id="phone" type="tel" placeholder="Téléphone (ex. 0812345678 ou +243...)" autocomplete="tel" required>
+      <input id="email" type="email" placeholder="Adresse e-mail (facultative)" autocomplete="email">
+      <input id="password" type="password" placeholder="Mot de passe (6 caractères minimum)" minlength="6" autocomplete="new-password" required>
+      <button type="submit">Créer mon compte</button>
+    </form>
 
-  <form id="signInForm">
-    <h3>Se connecter</h3>
-    <input id="loginEmail" type="email" placeholder="Adresse e-mail" required>
-    <input id="loginPassword" type="password" placeholder="Mot de passe" required>
-    <button type="submit">Se connecter</button>
-  </form>
+    <form id="signInForm">
+      <h3>Se connecter</h3>
+      <input id="loginIdentifier" type="text" placeholder="Téléphone ou adresse e-mail" autocomplete="username" required>
+      <input id="loginPassword" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+      <button type="submit">Se connecter</button>
+    </form>
 
-  <button id="signOutBtn" type="button">Se déconnecter</button>
-  <div id="profileStatus"></div>
-</section>
+    <button id="signOutBtn" type="button">Se déconnecter</button>
+    <div id="profileStatus"></div>
+  </section>
 
   <section class="dashboard">
     <h2>Nos 13 modules</h2>
     <p>Choisissez le service auquel vous souhaitez accéder.</p>
 
     <div class="module-grid" id="moduleGrid">
-
       <article class="module-card" data-name="AGRI-MARKET">
-        <span>🛒</span>
-        <h3>AGRI-MARKET</h3>
-        <p>Achat et vente des produits agricoles.</p>
+        <span>🛒</span><h3>AGRI-MARKET</h3><p>Achat et vente des produits agricoles.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-TRACE">
-        <span>🔎</span>
-        <h3>AGRI-TRACE</h3>
-        <p>Traçabilité et identification des produits.</p>
+        <span>🔎</span><h3>AGRI-TRACE</h3><p>Traçabilité et identification des produits.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-COOP">
-        <span>🤝</span>
-        <h3>AGRI-COOP</h3>
-        <p>Coopération et organisation des producteurs.</p>
+        <span>🤝</span><h3>AGRI-COOP</h3><p>Coopération et organisation des producteurs.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-PRODUCTION">
-        <span>🌾</span>
-        <h3>AGRI-PRODUCTION</h3>
-        <p>Gestion des activités de production agricole.</p>
+        <span>🌾</span><h3>AGRI-PRODUCTION</h3><p>Gestion des activités de production agricole.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-TRANSPORT">
-        <span>🚚</span>
-        <h3>AGRI-TRANSPORT</h3>
-        <p>Transport et livraison des produits.</p>
+        <span>🚚</span><h3>AGRI-TRANSPORT</h3><p>Transport et livraison des produits.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-STOCK">
-        <span>📦</span>
-        <h3>AGRI-STOCK</h3>
-        <p>Gestion des stocks et entrepôts.</p>
+        <span>📦</span><h3>AGRI-STOCK</h3><p>Gestion des stocks et entrepôts.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-FORMATION">
-        <span>🎓</span>
-        <h3>AGRI-FORMATION</h3>
-        <p>Formation et apprentissage agricole.</p>
+        <span>🎓</span><h3>AGRI-FORMATION</h3><p>Formation et apprentissage agricole.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-CONSEIL">
-        <span>💡</span>
-        <h3>AGRI-CONSEIL</h3>
-        <p>Conseils et accompagnement technique.</p>
+        <span>💡</span><h3>AGRI-CONSEIL</h3><p>Conseils et accompagnement technique.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-FINANCE">
-        <span>💰</span>
-        <h3>AGRI-FINANCE</h3>
-        <p>Financement et solutions de paiement.</p>
+        <span>💰</span><h3>AGRI-FINANCE</h3><p>Financement et solutions de paiement.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-EMPLOI">
-        <span>👨‍🌾</span>
-        <h3>AGRI-EMPLOI</h3>
-        <p>Emplois et opportunités agricoles.</p>
+        <span>👨‍🌾</span><h3>AGRI-EMPLOI</h3><p>Emplois et opportunités agricoles.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-STATISTIQUES">
-        <span>📊</span>
-        <h3>AGRI-STATISTIQUES</h3>
-        <p>Données et statistiques agricoles.</p>
+        <span>📊</span><h3>AGRI-STATISTIQUES</h3><p>Données et statistiques agricoles.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-INNOVATION">
-        <span>🚀</span>
-        <h3>AGRI-INNOVATION</h3>
-        <p>Innovations et nouvelles technologies.</p>
+        <span>🚀</span><h3>AGRI-INNOVATION</h3><p>Innovations et nouvelles technologies.</p>
       </article>
-
       <article class="module-card" data-name="AGRI-PARTENARIAT">
-        <span>🌍</span>
-        <h3>AGRI-PARTENARIAT</h3>
-        <p>Institutions, entreprises, ONG, investisseurs et particuliers.</p>
+        <span>🌍</span><h3>AGRI-PARTENARIAT</h3><p>Institutions, entreprises, ONG, investisseurs et particuliers.</p>
       </article>
-
     </div>
   </section>
 </main>
