@@ -12,34 +12,26 @@ app.use(helmet({
 
 app.use(express.json({ limit: "1mb" }));
 
-// Origines autorisées
-const allowedOrigins = new Set(
-  (process.env.FRONTEND_URL || "https://josuesinga.github.io")
-    .split(",")
-    .map(origin => origin.trim())
-    .filter(Boolean)
-);
+const allowedOrigins = (process.env.FRONTEND_URL || "https://josuesinga.github.io")
+  .split(",")
+  .map(origin => origin.trim());
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.has(origin)) {
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    return callback(new Error("Origine non autorisée."));
+    return callback(null, false);
   },
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Configuration Supabase
-const required = [
-  "SUPABASE_URL",
-  "SUPABASE_ANON_KEY"
-];
+const required = ["SUPABASE_URL", "SUPABASE_ANON_KEY"];
 
 for (const key of required) {
   if (!process.env[key]) {
-    console.error("Variable manquante :", key);
+    console.error(`Variable manquante : ${key}`);
     process.exit(1);
   }
 }
@@ -49,7 +41,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Authentification sécurisée
+// Vérification de l'utilisateur et transmission de son jeton
 async function auth(req, res, next) {
   try {
     const header = req.headers.authorization || "";
@@ -62,8 +54,7 @@ async function auth(req, res, next) {
 
     const token = header.slice(7);
 
-    const { data, error } =
-      await supabase.auth.getUser(token);
+    const { data, error } = await supabase.auth.getUser(token);
 
     if (error || !data.user) {
       return res.status(401).json({
@@ -71,8 +62,8 @@ async function auth(req, res, next) {
       });
     }
 
-    // Client utilisant la session de l'utilisateur.
-    // Les règles RLS Supabase restent appliquées.
+    req.user = data.user;
+
     req.supabase = createClient(
       process.env.SUPABASE_URL,
       process.env.SUPABASE_ANON_KEY,
@@ -81,32 +72,33 @@ async function auth(req, res, next) {
           headers: {
             Authorization: `Bearer ${token}`
           }
+        },
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
         }
       }
     );
 
-    req.user = data.user;
     next();
-
   } catch (error) {
-    console.error("Erreur authentification :", error.message);
-
+    console.error("Erreur authentification :", error);
     res.status(500).json({
-      error: "Erreur de vérification du compte."
+      error: "Erreur de vérification."
     });
   }
 }
 
-// Vérification du serveur
+// Vérifier le fonctionnement du serveur
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
-    app: "AGRI-LINK RDC",
-    version: "1.0.0"
+    app: "AGRI-LINK RDC"
   });
 });
 
-// Consultation du profil connecté
+// Charger le profil de l'utilisateur connecté
 app.get("/api/profile", auth, async (req, res) => {
   try {
     const { data, error } = await req.supabase
@@ -117,24 +109,20 @@ app.get("/api/profile", auth, async (req, res) => {
 
     if (error || !data) {
       return res.status(404).json({
-        error: "Profil introuvable ou accès refusé."
+        error: "Profil introuvable."
       });
     }
 
-    res.json({
-      profile: data
-    });
-
+    res.json({ profile: data });
   } catch (error) {
-    console.error("Erreur profil :", error.message);
-
+    console.error("Erreur profil :", error);
     res.status(500).json({
       error: "Impossible de charger le profil."
     });
   }
 });
 
-// Consultation des produits agricoles actifs
+// Afficher les produits agricoles actifs
 app.get("/api/products", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -145,20 +133,16 @@ app.get("/api/products", async (req, res) => {
 
     if (error) throw error;
 
-    res.json({
-      products: data || []
-    });
-
+    res.json({ products: data });
   } catch (error) {
-    console.error("Erreur produits :", error.message);
-
+    console.error("Erreur produits :", error);
     res.status(500).json({
       error: "Impossible de charger les produits."
     });
   }
 });
 
-// Publication d'un produit par un producteur approuvé
+// Publier un produit agricole
 app.post("/api/products", auth, async (req, res) => {
   try {
     const { data: profile, error: profileError } =
@@ -189,34 +173,27 @@ app.post("/api/products", auth, async (req, res) => {
       unit,
       province,
       city
-    } = req.body || {};
+    } = req.body;
 
     if (
-      typeof name !== "string" ||
-      !name.trim() ||
-      typeof category !== "string" ||
-      !category.trim() ||
-      price === undefined ||
-      quantity === undefined ||
-      typeof unit !== "string" ||
-      !unit.trim()
+      !name || !category ||
+      price == null ||
+      quantity == null ||
+      !unit
     ) {
       return res.status(400).json({
         error: "Veuillez remplir les champs obligatoires."
       });
     }
 
-    const numericPrice = Number(price);
-    const numericQuantity = Number(quantity);
-
     if (
-      !Number.isFinite(numericPrice) ||
-      numericPrice < 0 ||
-      !Number.isFinite(numericQuantity) ||
-      numericQuantity <= 0
+      !Number.isFinite(Number(price)) ||
+      Number(price) < 0 ||
+      !Number.isFinite(Number(quantity)) ||
+      Number(quantity) <= 0
     ) {
       return res.status(400).json({
-        error: "Le prix ou la quantité est invalide."
+        error: "Prix ou quantité invalide."
       });
     }
 
@@ -224,13 +201,13 @@ app.post("/api/products", auth, async (req, res) => {
       .from("products")
       .insert({
         producer_id: req.user.id,
-        name: name.trim(),
-        category: category.trim(),
+        name: String(name).trim(),
+        category: String(category).trim(),
         description: description || null,
-        price: numericPrice,
+        price: Number(price),
         currency: currency || "USD",
-        quantity: numericQuantity,
-        unit: unit.trim(),
+        quantity: Number(quantity),
+        unit: String(unit).trim(),
         province: province || null,
         city: city || null,
         is_active: true
@@ -244,10 +221,8 @@ app.post("/api/products", auth, async (req, res) => {
       message: "Produit publié avec succès.",
       product: data
     });
-
   } catch (error) {
-    console.error("Erreur publication :", error.message);
-
+    console.error("Erreur publication :", error);
     res.status(500).json({
       error: "Impossible de publier le produit."
     });
@@ -261,18 +236,8 @@ app.use((req, res) => {
   });
 });
 
-// Gestion des erreurs
-app.use((error, req, res, next) => {
-  console.error("Erreur serveur :", error.message);
+const port = process.env.PORT || 3000;
 
-  res.status(500).json({
-    error: "Une erreur serveur est survenue."
-  });
-});
-
-// Démarrage
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`AGRI-LINK RDC démarré sur le port ${PORT}`);
+app.listen(port, () => {
+  console.log(`AGRI-LINK RDC démarré sur le port ${port}`);
 });
