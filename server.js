@@ -12,12 +12,26 @@ app.use(helmet({
 
 app.use(express.json({ limit: "1mb" }));
 
+// Origines autorisées
+const allowedOrigins = new Set(
+  (process.env.FRONTEND_URL || "https://josuesinga.github.io")
+    .split(",")
+    .map(origin => origin.trim())
+    .filter(Boolean)
+);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  methods: ["GET", "POST", "PATCH", "DELETE"],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error("Origine non autorisée."));
+  },
+  methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+// Configuration Supabase
 const required = [
   "SUPABASE_URL",
   "SUPABASE_ANON_KEY"
@@ -25,7 +39,7 @@ const required = [
 
 for (const key of required) {
   if (!process.env[key]) {
-    console.error(`Variable manquante : ${key}`);
+    console.error("Variable manquante :", key);
     process.exit(1);
   }
 }
@@ -35,7 +49,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-// Vérification de la connexion de l'utilisateur
+// Authentification sécurisée
 async function auth(req, res, next) {
   try {
     const header = req.headers.authorization || "";
@@ -48,7 +62,8 @@ async function auth(req, res, next) {
 
     const token = header.slice(7);
 
-    const { data, error } = await supabase.auth.getUser(token);
+    const { data, error } =
+      await supabase.auth.getUser(token);
 
     if (error || !data.user) {
       return res.status(401).json({
@@ -56,51 +71,70 @@ async function auth(req, res, next) {
       });
     }
 
+    // Client utilisant la session de l'utilisateur.
+    // Les règles RLS Supabase restent appliquées.
+    req.supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_ANON_KEY,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      }
+    );
+
     req.user = data.user;
     next();
 
   } catch (error) {
-    console.error(error);
+    console.error("Erreur authentification :", error.message);
+
     res.status(500).json({
-      error: "Erreur de vérification."
+      error: "Erreur de vérification du compte."
     });
   }
 }
 
-// Vérifier le fonctionnement du serveur
+// Vérification du serveur
 app.get("/api/health", (req, res) => {
   res.json({
     status: "ok",
-    app: "AGRI-LINK RDC"
+    app: "AGRI-LINK RDC",
+    version: "1.0.0"
   });
 });
 
-// Vérifier le profil et le statut du compte
+// Consultation du profil connecté
 app.get("/api/profile", auth, async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from("user_profiles")
       .select("id, full_name, user_role, account_status")
       .eq("id", req.user.id)
       .single();
 
-    if (error) {
+    if (error || !data) {
       return res.status(404).json({
-        error: "Profil introuvable."
+        error: "Profil introuvable ou accès refusé."
       });
     }
 
-    res.json({ profile: data });
+    res.json({
+      profile: data
+    });
 
   } catch (error) {
-    console.error(error);
+    console.error("Erreur profil :", error.message);
+
     res.status(500).json({
       error: "Impossible de charger le profil."
     });
   }
 });
 
-// Afficher les produits agricoles actifs
+// Consultation des produits agricoles actifs
 app.get("/api/products", async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -111,29 +145,35 @@ app.get("/api/products", async (req, res) => {
 
     if (error) throw error;
 
-    res.json({ products: data });
+    res.json({
+      products: data || []
+    });
 
   } catch (error) {
-    console.error(error);
+    console.error("Erreur produits :", error.message);
+
     res.status(500).json({
       error: "Impossible de charger les produits."
     });
   }
 });
 
-// Publier un produit agricole
+// Publication d'un produit par un producteur approuvé
 app.post("/api/products", auth, async (req, res) => {
   try {
     const { data: profile, error: profileError } =
-      await supabase
+      await req.supabase
         .from("user_profiles")
         .select("user_role, account_status")
         .eq("id", req.user.id)
         .single();
 
-    if (profileError ||
-        profile.account_status !== "approved" ||
-        profile.user_role !== "producer") {
+    if (
+      profileError ||
+      !profile ||
+      profile.account_status !== "approved" ||
+      profile.user_role !== "producer"
+    ) {
       return res.status(403).json({
         error: "Accès réservé aux producteurs approuvés."
       });
@@ -149,37 +189,50 @@ app.post("/api/products", auth, async (req, res) => {
       unit,
       province,
       city
-    } = req.body;
+    } = req.body || {};
 
-    if (!name || !category || price == null ||
-        quantity == null || !unit) {
+    if (
+      typeof name !== "string" ||
+      !name.trim() ||
+      typeof category !== "string" ||
+      !category.trim() ||
+      price === undefined ||
+      quantity === undefined ||
+      typeof unit !== "string" ||
+      !unit.trim()
+    ) {
       return res.status(400).json({
         error: "Veuillez remplir les champs obligatoires."
       });
     }
 
-    if (!Number.isFinite(Number(price)) ||
-        Number(price) < 0 ||
-        !Number.isFinite(Number(quantity)) ||
-        Number(quantity) <= 0) {
+    const numericPrice = Number(price);
+    const numericQuantity = Number(quantity);
+
+    if (
+      !Number.isFinite(numericPrice) ||
+      numericPrice < 0 ||
+      !Number.isFinite(numericQuantity) ||
+      numericQuantity <= 0
+    ) {
       return res.status(400).json({
-        error: "Prix ou quantité invalide."
+        error: "Le prix ou la quantité est invalide."
       });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await req.supabase
       .from("products")
       .insert({
         producer_id: req.user.id,
-        name,
-        category,
-        description,
-        price: Number(price),
+        name: name.trim(),
+        category: category.trim(),
+        description: description || null,
+        price: numericPrice,
         currency: currency || "USD",
-        quantity: Number(quantity),
-        unit,
-        province,
-        city,
+        quantity: numericQuantity,
+        unit: unit.trim(),
+        province: province || null,
+        city: city || null,
         is_active: true
       })
       .select()
@@ -193,15 +246,33 @@ app.post("/api/products", auth, async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Erreur publication :", error.message);
+
     res.status(500).json({
       error: "Impossible de publier le produit."
     });
   }
 });
 
-const port = process.env.PORT || 3000;
+// Route inconnue
+app.use((req, res) => {
+  res.status(404).json({
+    error: "Route introuvable."
+  });
+});
 
-app.listen(port, () => {
-  console.log(`AGRI-LINK RDC démarré sur le port ${port}`);
+// Gestion des erreurs
+app.use((error, req, res, next) => {
+  console.error("Erreur serveur :", error.message);
+
+  res.status(500).json({
+    error: "Une erreur serveur est survenue."
+  });
+});
+
+// Démarrage
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`AGRI-LINK RDC démarré sur le port ${PORT}`);
 });
