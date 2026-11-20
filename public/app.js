@@ -71,7 +71,8 @@ async function loadProducts() {
 
   if (error) {
     message.textContent =
-      "Impossible de charger les produits. Vérifiez les autorisations Supabase.";
+      message.textContent =
+  "Erreur Supabase : " + error.message;
     console.error(error);
     return;
   }
